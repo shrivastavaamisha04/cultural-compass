@@ -42,13 +42,13 @@ const App: React.FC = () => {
     try {
       const advice = await getCulturalAdvice(state.origin, state.destination, state.gender, activeScenario);
       setState(prev => ({ ...prev, result: advice, isLoading: false }));
-    } catch (err) {
+    } catch (err: any) {
+      const errorMessage = err?.message || (typeof err === 'string' ? err : JSON.stringify(err)) || "Unknown error";
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: err instanceof Error ? `Error: ${err.message}` : "Connectivity issue. The compass is lost."
+        error: `Debug Error: ${errorMessage}`
       }));
-      console.error("Full error details:", err);
     }
   };
 
@@ -224,7 +224,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="flex-none h-16 pb-[calc(1rem+env(safe-area-inset-bottom))] flex items-center justify-center pointer-events-none">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">The Cultural Compass • Last Minute Etiquette</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">The Cultural Compass • Last Minute Etiquette • v1.2</p>
       </footer>
     </div>
   );
