@@ -6,6 +6,7 @@
   body {
     @apply font-sans bg-[#FAF9F6] text-slate-800 m-0 p-0 overflow-hidden;
     overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
