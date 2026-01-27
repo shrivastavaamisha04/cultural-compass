@@ -56,7 +56,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen max-w-md mx-auto flex flex-col relative overflow-hidden">
+    <div className="h-[100dvh] max-w-md mx-auto flex flex-col relative overflow-hidden">
       {/* Dynamic Header */}
       <header className="flex-none z-50 px-6 py-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex flex-col gap-4">
         <div className="flex items-center justify-between">
