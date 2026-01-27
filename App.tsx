@@ -46,8 +46,9 @@ const App: React.FC = () => {
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: "Connectivity issue. The compass is lost."
+        error: err instanceof Error ? `Error: ${err.message}` : "Connectivity issue. The compass is lost."
       }));
+      console.error("Full error details:", err);
     }
   };
 

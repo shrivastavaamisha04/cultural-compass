@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { CulturalAdvice } from "../types";
 
 const SYSTEM_INSTRUCTION = `You are "The Cultural Compass," a high-performance cross-cultural communication coach. 
@@ -23,21 +23,21 @@ CONSTRAINTS:
 Scenario Format: Contrast the user's home norms with the destination's specific etiquette for the given request, considering their gender and location.`;
 
 const RESPONSE_SCHEMA = {
-  type: Type.OBJECT,
+  type: SchemaType.OBJECT,
   properties: {
-    title: { type: Type.STRING, description: "A punchy 3-5 word summary" },
+    title: { type: SchemaType.STRING, description: "A punchy 3-5 word summary" },
     steps: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
+      type: SchemaType.ARRAY,
+      items: { type: SchemaType.STRING },
       description: "Exactly 3 physical/verbal steps"
     },
-    taboo: { type: Type.STRING, description: "A critical Red Flag warning" },
+    taboo: { type: SchemaType.STRING, description: "A critical Red Flag warning" },
     phrase: {
-      type: Type.OBJECT,
+      type: SchemaType.OBJECT,
       properties: {
-        native: { type: Type.STRING },
-        phonetic: { type: Type.STRING },
-        meaning: { type: Type.STRING }
+        native: { type: SchemaType.STRING },
+        phonetic: { type: SchemaType.STRING },
+        meaning: { type: SchemaType.STRING }
       },
       required: ["native", "phonetic", "meaning"]
     }
@@ -46,22 +46,30 @@ const RESPONSE_SCHEMA = {
 };
 
 export const getCulturalAdvice = async (origin: string, destination: string, gender: string, scenario: string): Promise<CulturalAdvice> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  // Debug log to check if key exists (first 4 chars only for security)
+  const apiKey = process.env.API_KEY || '';
+  console.log("Initializing Gemini with Key:", apiKey ? `${apiKey.substring(0, 4)}...` : "MISSING");
+
+  if (!apiKey) {
+    throw new Error("API Key is missing. Please check your settings.");
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
+    systemInstruction: SYSTEM_INSTRUCTION,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: RESPONSE_SCHEMA,
+    }
+  });
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: `User Profile: ${gender} from ${origin}. 
+    const result = await model.generateContent(`User Profile: ${gender} from ${origin}. 
       Destination: ${destination}. 
-      Etiquette Question: "${scenario}".`,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        responseSchema: RESPONSE_SCHEMA,
-      },
-    });
+      Etiquette Question: "${scenario}".`);
 
-    const text = response.text;
+    const text = result.response.text();
     if (!text) throw new Error("No response from AI");
 
     return JSON.parse(text) as CulturalAdvice;
