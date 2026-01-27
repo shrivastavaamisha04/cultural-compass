@@ -47,10 +47,10 @@ const RESPONSE_SCHEMA = {
 
 export const getCulturalAdvice = async (origin: string, destination: string, gender: string, scenario: string): Promise<CulturalAdvice> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-  
+
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-2.0-flash-exp",
       contents: `User Profile: ${gender} from ${origin}. 
       Destination: ${destination}. 
       Etiquette Question: "${scenario}".`,
@@ -63,7 +63,7 @@ export const getCulturalAdvice = async (origin: string, destination: string, gen
 
     const text = response.text;
     if (!text) throw new Error("No response from AI");
-    
+
     return JSON.parse(text) as CulturalAdvice;
   } catch (error) {
     console.error("Gemini API Error:", error);
