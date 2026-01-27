@@ -1,5 +1,4 @@
 
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { CulturalAdvice } from "../types";
 
 const SYSTEM_INSTRUCTION = `You are "The Cultural Compass," a high-performance cross-cultural communication coach. 
@@ -20,33 +19,21 @@ CONSTRAINTS:
 3. Steps: Exactly 3 physically actionable items.
 4. Taboo: One high-consequence "Red Flag" to avoid.
 
-Scenario Format: Contrast the user's home norms with the destination's specific etiquette for the given request, considering their gender and location.`;
+Scenario Format: Contrast the user's home norms with the destination's specific etiquette for the given request, considering their gender and location.
 
-const RESPONSE_SCHEMA = {
-  type: SchemaType.OBJECT,
-  properties: {
-    title: { type: SchemaType.STRING, description: "A punchy 3-5 word summary" },
-    steps: {
-      type: SchemaType.ARRAY,
-      items: { type: SchemaType.STRING },
-      description: "Exactly 3 physical/verbal steps"
-    },
-    taboo: { type: SchemaType.STRING, description: "A critical Red Flag warning" },
-    phrase: {
-      type: SchemaType.OBJECT,
-      properties: {
-        native: { type: SchemaType.STRING },
-        phonetic: { type: SchemaType.STRING },
-        meaning: { type: SchemaType.STRING }
-      },
-      required: ["native", "phonetic", "meaning"]
-    }
-  },
-  required: ["title", "steps", "taboo", "phrase"]
-};
+RESPONSE FORMAT (JSON):
+{
+  "title": "A punchy 3-5 word summary",
+  "steps": ["Step 1", "Step 2", "Step 3"],
+  "taboo": "A critical Red Flag warning",
+  "phrase": {
+    "native": "Native language phrase",
+    "phonetic": "How to pronounce it",
+    "meaning": "What it means in English"
+  }
+}`;
 
 export const getCulturalAdvice = async (origin: string, destination: string, gender: string, scenario: string): Promise<CulturalAdvice> => {
-  // Debug log to check if key exists (first 4 chars only for security)
   const apiKey = process.env.API_KEY || '';
   console.log("Initializing Gemini with Key:", apiKey ? `${apiKey.substring(0, 4)}...` : "MISSING");
 
@@ -54,31 +41,50 @@ export const getCulturalAdvice = async (origin: string, destination: string, gen
     throw new Error("API Key is missing. Please check your settings.");
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-pro",
-    systemInstruction: SYSTEM_INSTRUCTION
-  });
+  const prompt = `${SYSTEM_INSTRUCTION}
+
+User Profile: ${gender} from ${origin}. 
+Destination: ${destination}. 
+Etiquette Question: "${scenario}".
+
+Provide your response as valid JSON only, following the exact format specified above.`;
 
   try {
-    const result = await model.generateContent({
-      contents: [{
-        role: "user", parts: [{
-          text: `User Profile: ${gender} from ${origin}. 
-      Destination: ${destination}. 
-      Etiquette Question: "${scenario}".`
-        }]
-      }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+          }
+        })
       }
-    });
+    );
 
-    const text = result.response.text();
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
     if (!text) throw new Error("No response from AI");
 
-    return JSON.parse(text) as CulturalAdvice;
+    // Clean up the response - remove markdown code blocks if present
+    const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+    return JSON.parse(cleanText) as CulturalAdvice;
   } catch (error) {
     console.error("Gemini API Error:", error);
     throw error;
