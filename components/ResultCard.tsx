@@ -44,7 +44,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ advice, onReset }) => {
   const stepColors = ["border-emerald-400/80 text-emerald-800", "border-sky-400/80 text-sky-800", "border-indigo-400/80 text-indigo-800"];
 
   return (
-    <motion.div 
+    <motion.div
       variants={container}
       initial="hidden"
       animate="show"
@@ -60,10 +60,10 @@ const ResultCard: React.FC<ResultCardProps> = ({ advice, onReset }) => {
         {advice.steps.map((step, idx) => {
           const isExpanded = expandedSteps[idx];
           const needsTruncation = step.length > 120;
-          
+
           return (
-            <motion.div 
-              key={idx} 
+            <motion.div
+              key={idx}
               variants={item}
               className={`flex flex-col gap-2 p-5 glass-container border-l-4 ${stepColors[idx]} bg-white/70 shadow-sm border-white/50`}
             >
@@ -85,9 +85,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ advice, onReset }) => {
           );
         })}
       </div>
-      </div>
 
-      <motion.div 
+      <motion.div
         variants={item}
         className="bg-red-50 border-2 border-red-200 rounded-3xl p-6 relative overflow-hidden group shadow-sm"
       >
@@ -100,7 +99,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ advice, onReset }) => {
         <p className="text-red-900 font-bold text-xl leading-snug">{advice.taboo}</p>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         variants={item}
         className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-3xl p-8 text-center relative overflow-hidden shadow-sm"
       >
@@ -117,7 +116,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ advice, onReset }) => {
         </div>
       </motion.div>
 
-      <motion.button 
+      <motion.button
         variants={item}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
