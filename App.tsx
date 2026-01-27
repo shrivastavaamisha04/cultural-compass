@@ -43,10 +43,10 @@ const App: React.FC = () => {
       const advice = await getCulturalAdvice(state.origin, state.destination, state.gender, activeScenario);
       setState(prev => ({ ...prev, result: advice, isLoading: false }));
     } catch (err) {
-      setState(prev => ({ 
-        ...prev, 
-        isLoading: false, 
-        error: "Connectivity issue. The compass is lost." 
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: "Connectivity issue. The compass is lost."
       }));
     }
   };
@@ -58,10 +58,10 @@ const App: React.FC = () => {
   return (
     <div className="h-screen max-w-md mx-auto flex flex-col relative overflow-hidden">
       {/* Dynamic Header */}
-      <header className="flex-none z-50 px-6 py-6 flex flex-col gap-4">
+      <header className="flex-none z-50 px-6 py-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <motion.div 
-            initial={{ x: -20, opacity: 0 }} 
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             className="flex items-center gap-3"
           >
@@ -73,15 +73,15 @@ const App: React.FC = () => {
               <h2 className="text-xl font-bold text-slate-800">Compass</h2>
             </div>
           </motion.div>
-          
-          <motion.div 
-            initial={{ x: 20, opacity: 0 }} 
+
+          <motion.div
+            initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             className="flex items-center gap-1.5 glass-container p-1 border-white shadow-sm"
           >
             <div className={`flex flex-col px-2 py-0.5 rounded-lg transition-all ${!state.origin ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-white/40'}`}>
               <span className={`text-[7px] font-black uppercase tracking-tighter ${!state.origin ? 'text-indigo-400' : 'text-slate-400'}`}>From</span>
-              <input 
+              <input
                 className={`bg-transparent border-none text-[10px] font-bold w-10 text-center focus:outline-none uppercase placeholder:text-indigo-200 ${!state.origin ? 'text-indigo-600' : 'text-slate-500'}`}
                 value={state.origin}
                 placeholder="SET"
@@ -89,7 +89,7 @@ const App: React.FC = () => {
                 title="Origin Country"
               />
             </div>
-            
+
             <div className="text-slate-300 self-center">
               <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -98,7 +98,7 @@ const App: React.FC = () => {
 
             <div className={`flex flex-col px-2 py-0.5 rounded-lg transition-all border ${!state.destination ? 'bg-indigo-600 shadow-lg border-indigo-700' : 'bg-white/80 shadow-sm border-slate-50'}`}>
               <span className={`text-[7px] font-black uppercase tracking-tighter ${!state.destination ? 'text-white/60' : 'text-indigo-500'}`}>To</span>
-              <input 
+              <input
                 className={`bg-transparent border-none text-[10px] font-bold w-12 text-center focus:outline-none uppercase placeholder:text-white/40 ${!state.destination ? 'text-white' : 'text-slate-800'}`}
                 value={state.destination}
                 placeholder="HERE"
@@ -110,7 +110,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Gender Selection Bar */}
-        <motion.div 
+        <motion.div
           initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="glass-container flex p-1 border-white shadow-sm"
@@ -119,11 +119,10 @@ const App: React.FC = () => {
             <button
               key={opt}
               onClick={() => setState(prev => ({ ...prev, gender: opt }))}
-              className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                state.gender === opt 
-                ? 'bg-slate-800 text-white shadow-md' 
+              className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${state.gender === opt
+                ? 'bg-slate-800 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-600'
-              }`}
+                }`}
             >
               {opt}
             </button>
@@ -134,17 +133,17 @@ const App: React.FC = () => {
       <main className="flex-1 overflow-y-auto px-6 pb-32">
         <AnimatePresence mode="wait">
           {state.error && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }} 
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-bold text-center"
             >
               {state.error}
             </motion.div>
           )}
-          
+
           {!state.isLoading && !state.result && (
-            <motion.div 
+            <motion.div
               key="home"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -181,8 +180,8 @@ const App: React.FC = () => {
                   <div className="h-[1px] flex-1 bg-slate-200"></div>
                 </div>
 
-                <form 
-                  onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} 
+                <form
+                  onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
                   className="relative glass-container p-4 group focus-within:ring-2 focus-within:ring-slate-200 transition-all border-slate-100"
                 >
                   <textarea
@@ -192,7 +191,7 @@ const App: React.FC = () => {
                     onChange={(e) => setState(prev => ({ ...prev, scenario: e.target.value }))}
                   />
                   <div className="flex justify-end pt-2">
-                    <button 
+                    <button
                       type="submit"
                       disabled={!state.scenario.trim()}
                       className="bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold disabled:opacity-20 hover:scale-105 transition-all text-sm shadow-sm"
@@ -206,7 +205,7 @@ const App: React.FC = () => {
           )}
 
           {state.isLoading && (
-            <motion.div 
+            <motion.div
               key="loading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -223,7 +222,7 @@ const App: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      <footer className="flex-none h-16 flex items-center justify-center pointer-events-none">
+      <footer className="flex-none h-16 pb-[calc(1rem+env(safe-area-inset-bottom))] flex items-center justify-center pointer-events-none">
         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">The Cultural Compass • Last Minute Etiquette</p>
       </footer>
     </div>
