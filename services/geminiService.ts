@@ -56,7 +56,7 @@ export const getCulturalAdvice = async (origin: string, destination: string, gen
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-1.5-flash-002",
     systemInstruction: SYSTEM_INSTRUCTION,
     generationConfig: {
       responseMimeType: "application/json",
