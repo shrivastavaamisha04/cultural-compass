@@ -1,0 +1,21 @@
+
+{
+  "name": "The Cultural Compass",
+  "short_name": "Compass",
+  "description": "A real-time cultural etiquette coach for travelers and expats.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/854/854878.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
