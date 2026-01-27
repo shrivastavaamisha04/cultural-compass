@@ -50,7 +50,7 @@ export const getCulturalAdvice = async (origin: string, destination: string, gen
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+      model: "gemini-1.5-flash",
       contents: `User Profile: ${gender} from ${origin}. 
       Destination: ${destination}. 
       Etiquette Question: "${scenario}".`,
