@@ -9,6 +9,21 @@ interface ResultCardProps {
 }
 
 const ResultCard: React.FC<ResultCardProps> = ({ advice, onReset }) => {
+  const [expandedSteps, setExpandedSteps] = React.useState<boolean[]>([false, false, false]);
+
+  const toggleStep = (index: number) => {
+    setExpandedSteps(prev => {
+      const newState = [...prev];
+      newState[index] = !newState[index];
+      return newState;
+    });
+  };
+
+  const truncateText = (text: string, maxLength: number = 120) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + '...';
+  };
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -42,18 +57,34 @@ const ResultCard: React.FC<ResultCardProps> = ({ advice, onReset }) => {
       </motion.div>
 
       <div className="space-y-4">
-        {advice.steps.map((step, idx) => (
-          <motion.div 
-            key={idx} 
-            variants={item}
-            className={`flex flex-col gap-2 p-5 glass-container border-l-4 ${stepColors[idx]} bg-white/70 shadow-sm border-white/50`}
-          >
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">
-              {stepLabels[idx]}
-            </span>
-            <p className="text-slate-800 text-lg font-medium">{step}</p>
-          </motion.div>
-        ))}
+        {advice.steps.map((step, idx) => {
+          const isExpanded = expandedSteps[idx];
+          const needsTruncation = step.length > 120;
+          
+          return (
+            <motion.div 
+              key={idx} 
+              variants={item}
+              className={`flex flex-col gap-2 p-5 glass-container border-l-4 ${stepColors[idx]} bg-white/70 shadow-sm border-white/50`}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">
+                {stepLabels[idx]}
+              </span>
+              <p className="text-slate-800 text-lg font-medium">
+                {isExpanded || !needsTruncation ? step : truncateText(step)}
+              </p>
+              {needsTruncation && (
+                <button
+                  onClick={() => toggleStep(idx)}
+                  className="text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors self-start mt-1"
+                >
+                  {isExpanded ? '← Show less' : 'Read more →'}
+                </button>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
       </div>
 
       <motion.div 
@@ -95,7 +126,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ advice, onReset }) => {
       >
         Ask Another Scenario
       </motion.button>
-    </motion.div>
+    </motion.div >
   );
 };
 
