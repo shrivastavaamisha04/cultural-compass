@@ -56,18 +56,24 @@ export const getCulturalAdvice = async (origin: string, destination: string, gen
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash-001",
-    systemInstruction: SYSTEM_INSTRUCTION,
-    // Removing strict schema to ensure compatibility with all model versions
-    generationConfig: {
-      responseMimeType: "application/json",
-    }
+    model: "gemini-pro",
+    systemInstruction: SYSTEM_INSTRUCTION
   });
 
   try {
-    const result = await model.generateContent(`User Profile: ${gender} from ${origin}. 
+    const result = await model.generateContent({
+      contents: [{
+        role: "user", parts: [{
+          text: `User Profile: ${gender} from ${origin}. 
       Destination: ${destination}. 
-      Etiquette Question: "${scenario}".`);
+      Etiquette Question: "${scenario}".`
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1024,
+      }
+    });
 
     const text = result.response.text();
     if (!text) throw new Error("No response from AI");
