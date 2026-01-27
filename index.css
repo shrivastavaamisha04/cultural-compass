@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans bg-[#FAF9F6] text-slate-800 m-0 p-0 overflow-hidden;
+  }
+}
+
+.mesh-gradient {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: #FAF9F6;
+    background-image: 
+        radial-gradient(at 15% 15%, hsla(225, 100%, 94%, 1) 0px, transparent 50%),
+        radial-gradient(at 85% 15%, hsla(280, 100%, 94%, 1) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, hsla(190, 100%, 95%, 1) 0px, transparent 50%),
+        radial-gradient(at 15% 85%, hsla(35, 100%, 93%, 1) 0px, transparent 50%),
+        radial-gradient(at 85% 85%, hsla(340, 100%, 94%, 1) 0px, transparent 50%);
+    filter: blur(60px);
+    opacity: 0.8;
+    transform: scale(1.2);
+}
+
+.glass-container {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 2rem;
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05);
+}
