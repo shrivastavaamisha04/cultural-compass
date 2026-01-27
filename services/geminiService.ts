@@ -56,11 +56,11 @@ export const getCulturalAdvice = async (origin: string, destination: string, gen
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash-002",
+    model: "gemini-1.5-flash-001",
     systemInstruction: SYSTEM_INSTRUCTION,
+    // Removing strict schema to ensure compatibility with all model versions
     generationConfig: {
       responseMimeType: "application/json",
-      responseSchema: RESPONSE_SCHEMA,
     }
   });
 
