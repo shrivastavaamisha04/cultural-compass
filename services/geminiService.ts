@@ -33,12 +33,101 @@ RESPONSE FORMAT (JSON):
   }
 }`;
 
+// Fallback data generator for when API is unavailable
+const generateFallbackAdvice = (origin: string, destination: string, gender: string, scenario: string): CulturalAdvice => {
+  console.log("🔄 Using fallback mechanism - API unavailable");
+
+  // Generic but helpful fallback advice
+  const fallbackData: CulturalAdvice = {
+    title: "Cultural Etiquette Guide",
+    steps: [
+      `Research ${destination}'s customs online before your visit to understand local expectations`,
+      "Observe locals' behavior and follow their lead in social situations",
+      "When in doubt, be polite, smile, and ask locals for guidance - most appreciate the effort"
+    ],
+    taboo: `Avoid making assumptions based on ${origin}'s culture - what's normal at home may be offensive in ${destination}`,
+    phrase: {
+      native: "Hello / Thank you",
+      phonetic: "Learn basic greetings locally",
+      meaning: "Basic courtesy phrases go a long way"
+    }
+  };
+
+  // Add scenario-specific guidance
+  const scenarioLower = scenario.toLowerCase();
+
+  if (scenarioLower.includes('greet') || scenarioLower.includes('hello')) {
+    fallbackData.title = "Greeting Etiquette Tips";
+    fallbackData.steps = [
+      "Research appropriate greetings for your destination (bow, handshake, or verbal)",
+      "Observe the level of physical contact locals use and match it",
+      "Use formal titles and last names unless invited to use first names"
+    ];
+    fallbackData.taboo = "Don't assume physical contact (hugs, kisses) is welcome - many cultures prefer distance";
+  } else if (scenarioLower.includes('eat') || scenarioLower.includes('food') || scenarioLower.includes('dining')) {
+    fallbackData.title = "Dining Etiquette Essentials";
+    fallbackData.steps = [
+      "Wait to be seated and observe how locals use utensils before starting",
+      "Pace yourself with others at the table - don't rush or finish too quickly",
+      "Learn if tipping is expected, offensive, or included in the bill"
+    ];
+    fallbackData.taboo = "Never start eating before your host or elders, and avoid pointing utensils at people";
+  } else if (scenarioLower.includes('dress') || scenarioLower.includes('wear') || scenarioLower.includes('clothing')) {
+    fallbackData.title = "Dress Code Guidelines";
+    fallbackData.steps = [
+      `Research ${destination}'s modesty standards for ${gender} travelers`,
+      "Pack conservative options for religious sites and formal occasions",
+      "Observe what locals wear and adjust your wardrobe accordingly"
+    ];
+    fallbackData.taboo = "Avoid revealing clothing in conservative areas - it can be deeply offensive and unsafe";
+  } else if (scenarioLower.includes('gift') || scenarioLower.includes('present')) {
+    fallbackData.title = "Gift-Giving Protocol";
+    fallbackData.steps = [
+      "Research culturally appropriate gifts and colors for your destination",
+      "Present gifts with both hands and avoid opening them immediately unless asked",
+      "Quality matters more than quantity - choose thoughtful over expensive"
+    ];
+    fallbackData.taboo = "Never give clocks, sharp objects, or white flowers without researching - they can symbolize death";
+  } else if (scenarioLower.includes('business') || scenarioLower.includes('meeting')) {
+    fallbackData.title = "Business Meeting Etiquette";
+    fallbackData.steps = [
+      "Arrive on time (or early) and dress formally unless told otherwise",
+      "Exchange business cards with both hands and take time to read them",
+      "Let senior members speak first and avoid interrupting"
+    ];
+    fallbackData.taboo = "Don't rush to business talk - many cultures value relationship-building first";
+  }
+
+  return fallbackData;
+};
+
+// Rate limiting tracker
+let lastRequestTime = 0;
+let requestCount = 0;
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_REQUESTS_PER_MINUTE = 10;
+
 export const getCulturalAdvice = async (origin: string, destination: string, gender: string, scenario: string): Promise<CulturalAdvice> => {
-  const apiKey = process.env.API_KEY || '';
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
   console.log("Initializing Gemini with Key:", apiKey ? `${apiKey.substring(0, 4)}...` : "MISSING");
 
   if (!apiKey) {
-    throw new Error("API Key is missing. Please check your settings.");
+    console.warn("⚠️ API Key missing - using fallback data");
+    return generateFallbackAdvice(origin, destination, gender, scenario);
+  }
+
+  // Client-side rate limiting
+  const now = Date.now();
+  if (now - lastRequestTime > RATE_LIMIT_WINDOW) {
+    requestCount = 0;
+    lastRequestTime = now;
+  }
+
+  requestCount++;
+
+  if (requestCount > MAX_REQUESTS_PER_MINUTE) {
+    console.warn("⚠️ Client-side rate limit reached - using fallback");
+    return generateFallbackAdvice(origin, destination, gender, scenario);
   }
 
   const prompt = `${SYSTEM_INSTRUCTION}
@@ -50,6 +139,9 @@ Etiquette Question: "${scenario}".
 Provide your response as valid JSON only, following the exact format specified above.`;
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
@@ -67,26 +159,62 @@ Provide your response as valid JSON only, following the exact format specified a
             temperature: 0.7,
             maxOutputTokens: 2048,
           }
-        })
+        }),
+        signal: controller.signal
       }
     );
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error?.message || response.statusText;
+
+      // Handle specific error types
+      if (response.status === 429) {
+        console.warn("⚠️ API Rate limit exceeded (429) - using fallback");
+        return generateFallbackAdvice(origin, destination, gender, scenario);
+      } else if (response.status === 403) {
+        console.warn("⚠️ API Key invalid or quota exceeded (403) - using fallback");
+        return generateFallbackAdvice(origin, destination, gender, scenario);
+      } else if (response.status >= 500) {
+        console.warn("⚠️ Server error - using fallback");
+        return generateFallbackAdvice(origin, destination, gender, scenario);
+      }
+
+      throw new Error(`API Error: ${errorMessage}`);
     }
 
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!text) throw new Error("No response from AI");
+    if (!text) {
+      console.warn("⚠️ Empty API response - using fallback");
+      return generateFallbackAdvice(origin, destination, gender, scenario);
+    }
 
     // Clean up the response - remove markdown code blocks if present
     const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-    return JSON.parse(cleanText) as CulturalAdvice;
+    try {
+      return JSON.parse(cleanText) as CulturalAdvice;
+    } catch (parseError) {
+      console.warn("⚠️ Failed to parse API response - using fallback");
+      return generateFallbackAdvice(origin, destination, gender, scenario);
+    }
   } catch (error) {
     console.error("Gemini API Error:", error);
-    throw error;
+
+    // Check if it's a network error or timeout
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        console.warn("⚠️ Request timeout - using fallback");
+      } else if (error.message.includes('fetch')) {
+        console.warn("⚠️ Network error - using fallback");
+      }
+    }
+
+    // Always return fallback data instead of throwing
+    return generateFallbackAdvice(origin, destination, gender, scenario);
   }
 };

@@ -30,6 +30,7 @@ const App: React.FC = () => {
   });
 
   const [lastScenario, setLastScenario] = useState<string>('');
+  const [isFallbackMode, setIsFallbackMode] = useState<boolean>(false);
 
   // Re-fetch advice when gender changes and we have results showing
   // Debounced to prevent rapid API calls
@@ -55,9 +56,23 @@ const App: React.FC = () => {
     setLastScenario(activeScenario);
 
     setState(prev => ({ ...prev, isLoading: true, error: null, result: null }));
+    setIsFallbackMode(false);
 
     try {
+      // Monitor console for fallback warnings
+      const originalWarn = console.warn;
+      let fallbackDetected = false;
+      console.warn = (...args) => {
+        if (args[0]?.includes('fallback')) {
+          fallbackDetected = true;
+        }
+        originalWarn(...args);
+      };
+
       const advice = await getCulturalAdvice(state.origin, state.destination, state.gender, activeScenario);
+
+      console.warn = originalWarn;
+      setIsFallbackMode(fallbackDetected);
       setState(prev => ({ ...prev, result: advice, isLoading: false }));
     } catch (err: any) {
       const errorMessage = err?.message || (typeof err === 'string' ? err : JSON.stringify(err)) || "Unknown error";
@@ -152,6 +167,17 @@ const App: React.FC = () => {
 
       <main className="flex-1 overflow-y-auto px-6 pb-32">
         <AnimatePresence mode="wait">
+          {isFallbackMode && state.result && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-xs font-medium text-center flex items-center justify-center gap-2"
+            >
+              <span>⚡</span>
+              <span>Offline mode - showing general guidance</span>
+            </motion.div>
+          )}
+
           {state.error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
