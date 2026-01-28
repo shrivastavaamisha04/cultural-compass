@@ -32,9 +32,14 @@ const App: React.FC = () => {
   const [lastScenario, setLastScenario] = useState<string>('');
 
   // Re-fetch advice when gender changes and we have results showing
+  // Debounced to prevent rapid API calls
   React.useEffect(() => {
     if (state.result && lastScenario && state.origin && state.destination) {
-      handleSubmit(lastScenario);
+      const timeoutId = setTimeout(() => {
+        handleSubmit(lastScenario);
+      }, 500); // Wait 500ms before re-fetching
+
+      return () => clearTimeout(timeoutId);
     }
   }, [state.gender]);
 
