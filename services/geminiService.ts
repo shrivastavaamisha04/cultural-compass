@@ -108,7 +108,8 @@ const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const MAX_REQUESTS_PER_MINUTE = 10;
 
 export const getCulturalAdvice = async (origin: string, destination: string, gender: string, scenario: string): Promise<CulturalAdvice> => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+  // Support both VITE_GEMINI_API_KEY (local dev) and API_KEY (Vercel production)
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.API_KEY || '';
   console.log("Initializing Gemini with Key:", apiKey ? `${apiKey.substring(0, 4)}...` : "MISSING");
 
   if (!apiKey) {
