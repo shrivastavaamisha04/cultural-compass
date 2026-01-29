@@ -108,12 +108,27 @@ const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const MAX_REQUESTS_PER_MINUTE = 10;
 
 export const getCulturalAdvice = async (origin: string, destination: string, gender: string, scenario: string): Promise<CulturalAdvice> => {
-  // Support both VITE_GEMINI_API_KEY (local dev) and API_KEY (Vercel production)
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.API_KEY || '';
-  console.log("Initializing Gemini with Key:", apiKey ? `${apiKey.substring(0, 4)}...` : "MISSING");
+  // Debug: Log all available environment variables
+  console.log('🔍 Environment Debug:', {
+    'import.meta.env.VITE_GEMINI_API_KEY': import.meta.env.VITE_GEMINI_API_KEY ? 'SET' : 'MISSING',
+    'import.meta.env.API_KEY': import.meta.env.API_KEY ? 'SET' : 'MISSING',
+    'All env keys': Object.keys(import.meta.env),
+    'Mode': import.meta.env.MODE,
+    'Prod': import.meta.env.PROD
+  });
+
+  // Try multiple sources for the API key
+  const apiKey =
+    import.meta.env.VITE_GEMINI_API_KEY ||
+    import.meta.env.API_KEY ||
+    (import.meta.env as any).GEMINI_API_KEY ||
+    '';
+
+  console.log("Initializing Gemini with Key:", apiKey ? `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}` : "MISSING");
 
   if (!apiKey) {
     console.warn("⚠️ API Key missing - using fallback data");
+    console.warn("💡 Tip: Make sure API_KEY is set in Vercel environment variables");
     return generateFallbackAdvice(origin, destination, gender, scenario);
   }
 
