@@ -105,17 +105,19 @@ const generateFallbackAdvice = (origin: string, destination: string, gender: str
 let lastRequestTime = 0;
 let requestCount = 0;
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
-const MAX_REQUESTS_PER_MINUTE = 10;
+const MAX_REQUESTS_PER_MINUTE = 30; // Increased from 10 to allow gender switching
 
 export const getCulturalAdvice = async (origin: string, destination: string, gender: string, scenario: string): Promise<CulturalAdvice> => {
-  // Debug: Log all available environment variables
-  console.log('🔍 Environment Debug:', {
-    'import.meta.env.VITE_GEMINI_API_KEY': import.meta.env.VITE_GEMINI_API_KEY ? 'SET' : 'MISSING',
-    'import.meta.env.API_KEY': import.meta.env.API_KEY ? 'SET' : 'MISSING',
-    'All env keys': Object.keys(import.meta.env),
-    'Mode': import.meta.env.MODE,
-    'Prod': import.meta.env.PROD
-  });
+  // Debug: Log all available environment variables (only in dev)
+  if (import.meta.env.DEV) {
+    console.log('🔍 Environment Debug:', {
+      'import.meta.env.VITE_GEMINI_API_KEY': import.meta.env.VITE_GEMINI_API_KEY ? 'SET' : 'MISSING',
+      'import.meta.env.API_KEY': import.meta.env.API_KEY ? 'SET' : 'MISSING',
+      'All env keys': Object.keys(import.meta.env),
+      'Mode': import.meta.env.MODE,
+      'Prod': import.meta.env.PROD
+    });
+  }
 
   // Try multiple sources for the API key
   const apiKey =
@@ -140,9 +142,10 @@ export const getCulturalAdvice = async (origin: string, destination: string, gen
   }
 
   requestCount++;
+  console.log(`📊 Rate limit: ${requestCount}/${MAX_REQUESTS_PER_MINUTE} requests in current window`);
 
   if (requestCount > MAX_REQUESTS_PER_MINUTE) {
-    console.warn("⚠️ Client-side rate limit reached - using fallback");
+    console.warn(`⚠️ Client-side rate limit reached (${requestCount}/${MAX_REQUESTS_PER_MINUTE}) - using fallback`);
     return generateFallbackAdvice(origin, destination, gender, scenario);
   }
 

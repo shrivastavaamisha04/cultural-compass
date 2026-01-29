@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_KEY="AIzaSyDfnND4XE5OBCr30RRg2zq_hnUKqh5VjJU"
+API_KEY="AIzaSyBF4sP2Y1dal2GoMWosyCbfWibGNXFO_uI"
 
 echo "Testing Gemini API..."
 echo "===================="

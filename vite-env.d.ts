@@ -4,6 +4,7 @@ interface ImportMetaEnv {
     readonly VITE_GEMINI_API_KEY: string
     readonly API_KEY: string  // For Vercel deployment
     readonly MODE: string
+    readonly DEV: boolean
     readonly PROD: boolean
 }
 
