@@ -165,7 +165,7 @@ const App: React.FC = () => {
         </motion.div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 pb-32">
+      <main className="flex-1 overflow-y-auto px-6 pb-40">
         <AnimatePresence mode="wait">
           {isFallbackMode && state.result && (
             <motion.div
